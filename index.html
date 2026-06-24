@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spark Field Assistant</title>
+
+  <style>
+    :root {
+      --navy: #101827;
+      --orange: #e65a00;
+      --light: #f7f4ef;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--light);
+      color: var(--text);
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--navy);
+      color: white;
+      padding: 24px 18px;
+    }
+
+    .logo {
+      color: var(--orange);
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-size: 14px;
+    }
+
+    h1 {
+      margin: 10px 0 4px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    main {
+      flex: 1;
+      padding: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .primary {
+      background: var(--orange);
+      color: white;
+    }
+
+    .secondary {
+      background: #111827;
+      color: white;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 18px;
+    }
+
+    .bottom-bar {
+      position: sticky;
+      bottom: 0;
+      background: var(--navy);
+      color: white;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .total {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--orange);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="logo">SPARK HOMES</div>
+      <h1>Field Assistant</h1>
+      <p class="subtitle">Fast repair estimates for property walkthroughs</p>
+    </header>
+
+    <main>
+      <section class="card">
+        <label for="propertyName">Property Name</label>
+        <input id="propertyName" type="text" placeholder="Example: 123 Main Street" />
+
+        <button class="primary" onclick="startWalkthrough()">Start Guided Walkthrough</button>
+        <button class="secondary">Open Saved Projects</button>
+
+        <p class="hint">
+          Built for agents walking properties in the field. Big buttons, fast totals,
+          offline-first design, and a guided workflow instead of a spreadsheet.
+        </p>
+      </section>
+    </main>
+
+    <div class="bottom-bar">
+      <span>Estimated Repairs</span>
+      <span class="total">$0</span>
+    </div>
+  </div>
+
+  <script>
+    function startWalkthrough() {
+      const propertyName = document.getElementById("propertyName").value.trim();
+
+      if (!propertyName) {
+        alert("Enter a property name first.");
+        return;
+      }
+
+      alert("Walkthrough started for " + propertyName);
+    }
+  </script>
+</body>
+</html>
