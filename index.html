@@ -15,9 +15,7 @@
       --muted: #6b7280;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -36,6 +34,15 @@
       background: var(--navy);
       color: white;
       padding: 24px 18px;
+      text-align: center;
+    }
+
+    .brand-logo {
+      width: 130px;
+      max-width: 75%;
+      display: block;
+      margin: 0 auto 16px;
+      border-radius: 12px;
     }
 
     .logo {
@@ -133,6 +140,8 @@
 <body>
   <div class="app">
     <header>
+      <img src="assets/images/spark-logo.png" alt="Spark Homes Logo" class="brand-logo" />
+
       <div class="logo">SPARK HOMES</div>
       <h1>Field Assistant</h1>
       <p class="subtitle">Fast repair estimates for property walkthroughs</p>
