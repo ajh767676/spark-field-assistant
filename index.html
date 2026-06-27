@@ -5,7 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spark Field Assistant</title>
 
+
+
   <style>
+    .inspection-list {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .inspection-item {
+      background: #f3f4f6;
+      color: var(--text);
+      text-align: left;
+      padding: 18px;
+      border-radius: 14px;
+      font-size: 17px;
+    }
     :root {
       --navy: #101827;
       --orange: #e65a00;
@@ -205,7 +221,7 @@
     </div>
   </div>
 
-  <script>
+<script>
   let currentScreen = "home";
 
   const appData = {
@@ -229,8 +245,8 @@
     };
 
     localStorage.setItem(
-    "currentProject",
-    JSON.stringify(appData.currentProject)
+      "currentProject",
+      JSON.stringify(appData.currentProject)
     );
 
     showDashboard();
@@ -256,13 +272,37 @@
           </div>
         </div>
 
-        <button class="primary">Begin Exterior Inspection</button>
+        <button class="primary" onclick="showExteriorInspection()">Begin Exterior Inspection</button>
         <button class="secondary">Open Deal Analyzer</button>
       </section>
     `;
 
     document.querySelector(".bottom-bar .total").textContent = "$0";
   }
-</script>
+
+  function showExteriorInspection() {
+    currentScreen = "exterior";
+
+    document.querySelector("main").innerHTML = `
+      <section class="card">
+        <p class="screen-label">Exterior Inspection</p>
+        <h2>${appData.currentProject.address}</h2>
+
+        <div class="inspection-list">
+          <button class="inspection-item">Roof</button>
+          <button class="inspection-item">Gutters</button>
+          <button class="inspection-item">Siding</button>
+          <button class="inspection-item">Windows</button>
+          <button class="inspection-item">Garage</button>
+          <button class="inspection-item">Trees</button>
+        </div>
+
+        <p class="hint">Progress: 0 / 6 complete</p>
+
+        <button class="secondary" onclick="showDashboard()">Save & Return to Dashboard</button>
+      </section>
+    `;
+  }
+</script>  
 </body>
 </html>
