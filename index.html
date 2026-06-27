@@ -8,6 +8,10 @@
 
 
   <style>
+    .inspection-item.complete {
+      background: #dcfce7;
+      color: #166534;
+    }
     .inspection-list {
       display: grid;
       gap: 12px;
@@ -225,8 +229,16 @@
   let currentScreen = "home";
 
   const appData = {
-    currentProject: null
-  };
+    currentProject: null,
+    exteriorChecklist: {
+        Roof: false,
+        Gutters: false,
+        Siding: false,
+        Windows: false,
+        Garage: false,
+        Trees: false
+  }
+};
 
   function startWalkthrough() {
     const propertyName = document.getElementById("propertyName").value.trim();
@@ -280,29 +292,39 @@
     document.querySelector(".bottom-bar .total").textContent = "$0";
   }
 
-  function showExteriorInspection() {
-    currentScreen = "exterior";
-
-    document.querySelector("main").innerHTML = `
-      <section class="card">
-        <p class="screen-label">Exterior Inspection</p>
-        <h2>${appData.currentProject.address}</h2>
-
-        <div class="inspection-list">
-          <button class="inspection-item">Roof</button>
-          <button class="inspection-item">Gutters</button>
-          <button class="inspection-item">Siding</button>
-          <button class="inspection-item">Windows</button>
-          <button class="inspection-item">Garage</button>
-          <button class="inspection-item">Trees</button>
-        </div>
-
-        <p class="hint">Progress: 0 / 6 complete</p>
-
-        <button class="secondary" onclick="showDashboard()">Save & Return to Dashboard</button>
-      </section>
-    `;
+  function toggleExteriorItem(itemName) {
+    appData.exteriorChecklist[itemName] = !appData.exteriorChecklist[itemName];
+    showExteriorInspection();
   }
+
+  function showExteriorInspection() {
+  currentScreen = "exterior";
+
+  const items = Object.keys(appData.exteriorChecklist);
+  const completed = items.filter(item => appData.exteriorChecklist[item]).length;
+
+  document.querySelector("main").innerHTML = `
+    <section class="card">
+      <p class="screen-label">Exterior Inspection</p>
+      <h2>${appData.currentProject.address}</h2>
+
+      <div class="inspection-list">
+        ${items.map(item => `
+          <button 
+            class="inspection-item ${appData.exteriorChecklist[item] ? "complete" : ""}"
+            onclick="toggleExteriorItem('${item}')"
+          >
+            ${appData.exteriorChecklist[item] ? "✅" : "⬜"} ${item}
+          </button>
+        `).join("")}
+      </div>
+
+      <p class="hint">Progress: ${completed} / ${items.length} complete</p>
+
+      <button class="secondary" onclick="showDashboard()">Save & Return to Dashboard</button>
+    </section>
+  `;
+}
 </script>  
 </body>
 </html>
