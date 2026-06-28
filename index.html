@@ -231,14 +231,14 @@
   const appData = {
     currentProject: null,
     exteriorChecklist: {
-        Roof: false,
-        Gutters: false,
-        Siding: false,
-        Windows: false,
-        Garage: false,
-        Trees: false
-  }
-};
+      Roof: { complete: false, cost: 1100 },
+      Gutters: { complete: false, cost: 500 },
+      Siding: { complete: false, cost: 975 },
+      Windows: { complete: false, cost: 425 },
+      Garage: { complete: false, cost: 1225 },
+      Trees: { complete: false, cost: 450 }
+    }
+  };
 
   function startWalkthrough() {
     const propertyName = document.getElementById("propertyName").value.trim();
@@ -264,8 +264,33 @@
     showDashboard();
   }
 
+  function getExteriorProgress() {
+  const items = Object.keys(appData.exteriorChecklist);
+  const completed = items.filter(item => appData.exteriorChecklist[item].complete).length;
+
+  return {
+    completed: completed,
+    total: items.length,
+    percent: Math.round((completed / items.length) * 100)
+    };
+  }
+
+  function getRepairTotal() {
+  const items = Object.keys(appData.exteriorChecklist);
+
+  return items.reduce((total, item) => {
+    if (appData.exteriorChecklist[item].complete) {
+      return total + appData.exteriorChecklist[item].cost;
+    }
+
+    return total;
+    }, 0);
+  }
+
   function showDashboard() {
     currentScreen = "dashboard";
+    const exteriorProgress = getExteriorProgress();
+    const repairTotal = getRepairTotal();
 
     document.querySelector("main").innerHTML = `
       <section class="card">
@@ -275,25 +300,32 @@
         <div class="stat-grid">
           <div class="stat-card">
             <span class="stat-label">Repair Total</span>
-            <strong>$0</strong>
+            <strong>$${repairTotal.toLocaleString()}</strong>
           </div>
 
           <div class="stat-card">
             <span class="stat-label">Progress</span>
-            <strong>0%</strong>
+            <strong>${exteriorProgress.percent}%</strong>
           </div>
         </div>
+
+        <p class="hint">
+          Exterior: ${exteriorProgress.completed} / ${exteriorProgress.total} complete
+        </p>
 
         <button class="primary" onclick="showExteriorInspection()">Begin Exterior Inspection</button>
         <button class="secondary">Open Deal Analyzer</button>
       </section>
     `;
 
-    document.querySelector(".bottom-bar .total").textContent = "$0";
+    document.querySelector(".bottom-bar .total").textContent =
+      "$" + repairTotal.toLocaleString();
   }
 
   function toggleExteriorItem(itemName) {
-    appData.exteriorChecklist[itemName] = !appData.exteriorChecklist[itemName];
+    appData.exteriorChecklist[itemName].complete =
+     !appData.exteriorChecklist[itemName].complete;
+
     showExteriorInspection();
   }
 
@@ -301,7 +333,7 @@
   currentScreen = "exterior";
 
   const items = Object.keys(appData.exteriorChecklist);
-  const completed = items.filter(item => appData.exteriorChecklist[item]).length;
+  const completed = items.filter(item => appData.exteriorChecklist[item].complete).length;
 
   document.querySelector("main").innerHTML = `
     <section class="card">
@@ -311,10 +343,11 @@
       <div class="inspection-list">
         ${items.map(item => `
           <button 
-            class="inspection-item ${appData.exteriorChecklist[item] ? "complete" : ""}"
+            class="inspection-item ${appData.exteriorChecklist[item].complete ? "complete" : ""}"
             onclick="toggleExteriorItem('${item}')"
           >
-            ${appData.exteriorChecklist[item] ? "✅" : "⬜"} ${item}
+            ${appData.exteriorChecklist[item].complete ? "✅" : "⬜"} ${item}
+            <span style="float:right;">$${appData.exteriorChecklist[item].cost.toLocaleString()}</span>
           </button>
         `).join("")}
       </div>
@@ -323,8 +356,8 @@
 
       <button class="secondary" onclick="showDashboard()">Save & Return to Dashboard</button>
     </section>
-  `;
-}
-</script>  
+    `;
+  }
+</script>
 </body>
 </html>
