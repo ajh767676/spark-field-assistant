@@ -192,6 +192,39 @@
     .stat-card strong {
       font-size: 24px;
     }
+  
+    select,
+    textarea {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 16px;
+      font-family: Arial, sans-serif;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .inspection-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .inspection-condition {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .inspection-cost {
+      color: var(--orange);
+      font-weight: bold;
+      margin-right: 8px;
+    }
   </style>
 </head>
 
@@ -329,6 +362,46 @@
     showExteriorInspection();
   }
 
+  function openInspectionDetail(itemName) {
+  const item = appData.exteriorChecklist[itemName];
+
+  document.querySelector("main").innerHTML = `
+    <section class="card">
+      <p class="screen-label">Exterior Detail</p>
+      <h2>${itemName} Inspection</h2>
+
+      <label for="condition">Condition</label>
+      <select id="condition">
+        <option value="Good">Good</option>
+        <option value="Minor Repair">Minor Repair</option>
+        <option value="Major Repair">Major Repair</option>
+        <option value="Replace">Replace</option>
+      </select>
+
+      <label for="repairCost">Estimated Cost</label>
+      <input id="repairCost" type="number" value="${item.cost}" />
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="Add notes about this repair..."></textarea>
+
+      <button class="primary" onclick="saveInspectionDetail('${itemName}')">Save Detail</button>
+      <button class="secondary" onclick="showExteriorInspection()">Cancel</button>
+    </section>
+  `;
+}
+  function saveInspectionDetail(itemName) {
+    const condition = document.getElementById("condition").value;
+    const repairCost = Number(document.getElementById("repairCost").value);
+    const notes = document.getElementById("notes").value.trim();
+
+    appData.exteriorChecklist[itemName].condition = condition;
+    appData.exteriorChecklist[itemName].cost = repairCost;
+    appData.exteriorChecklist[itemName].notes = notes;
+    appData.exteriorChecklist[itemName].complete = true;
+
+    showExteriorInspection();
+}
+
   function showExteriorInspection() {
   currentScreen = "exterior";
 
@@ -344,10 +417,19 @@
         ${items.map(item => `
           <button 
             class="inspection-item ${appData.exteriorChecklist[item].complete ? "complete" : ""}"
-            onclick="toggleExteriorItem('${item}')"
+            onclick="openInspectionDetail('${item}')"
           >
-            ${appData.exteriorChecklist[item].complete ? "✅" : "⬜"} ${item}
-            <span style="float:right;">$${appData.exteriorChecklist[item].cost.toLocaleString()}</span>
+           <div>
+              <strong>${appData.exteriorChecklist[item].complete ? "✅" : "⬜"} ${item}</strong>
+              <br>
+              <small class="inspection-condition">
+                ${appData.exteriorChecklist[item].condition || "Not reviewed yet"}
+              </small>
+            </div>
+
+<span class="inspection-cost">
+  $${appData.exteriorChecklist[item].cost.toLocaleString()}
+</span> 
           </button>
         `).join("")}
       </div>
