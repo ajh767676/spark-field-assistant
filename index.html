@@ -264,12 +264,12 @@
   const appData = {
     currentProject: null,
     exteriorChecklist: {
-      Roof: { complete: false, cost: 1100 },
-      Gutters: { complete: false, cost: 500 },
-      Siding: { complete: false, cost: 975 },
-      Windows: { complete: false, cost: 425 },
-      Garage: { complete: false, cost: 1225 },
-      Trees: { complete: false, cost: 450 }
+      Roof: { complete: false, cost: 1100, photo: null },
+      Gutters: { complete: false, cost: 500, photo: null },
+      Siding: { complete: false, cost: 975, photo: null },
+      Windows: { complete: false, cost: 425, photo: null },
+      Garage: { complete: false, cost: 1225, photo: null },
+      Trees: { complete: false, cost: 450, photo: null }
     }
   };
 
@@ -362,6 +362,12 @@
     showExteriorInspection();
   }
 
+  const photoFile = document.getElementById("photoInput").files[0];
+
+  if (photoFile) {
+    savePhoto(itemName, photoFile);
+  }
+
   function openInspectionDetail(itemName) {
   const item = appData.exteriorChecklist[itemName];
 
@@ -384,8 +390,21 @@
       <label for="notes">Notes</label>
       <textarea id="notes" placeholder="Add notes about this repair..."></textarea>
 
-      <button class="primary" onclick="saveInspectionDetail('${itemName}')">Save Detail</button>
-      <button class="secondary" onclick="showExteriorInspection()">Cancel</button>
+      <label for="photoInput">Photo</label>
+      <input
+          id="photoInput"
+          type="file"
+          accept="image/*"
+          capture="environment"
+      />
+
+      <button class="primary" onclick="saveInspectionDetail('${itemName}')">
+          Save Detail
+      </button>
+
+      <button class="secondary" onclick="showExteriorInspection()">
+          Cancel
+      </button>
     </section>
   `;
 }
@@ -399,9 +418,25 @@
     appData.exteriorChecklist[itemName].notes = notes;
     appData.exteriorChecklist[itemName].complete = true;
 
+    const photoFile = document.getElementById("photoInput").files[0];
+
+    if (photoFile) {
+    savePhoto(itemName, photoFile);
+    }
+
     showExteriorInspection();
 }
+  function savePhoto(itemName, file) {
+  const reader = new FileReader();
 
+  reader.onload = function(event) {
+    appData.exteriorChecklist[itemName].photo = event.target.result;
+  };
+
+  if (file) {
+    reader.readAsDataURL(file);
+  }
+}
   function showExteriorInspection() {
   currentScreen = "exterior";
 
