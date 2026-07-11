@@ -229,7 +229,42 @@
     .photo-label {
       color: #6b7280;
       font-size: 13px;
-}
+    }
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      margin-top: 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .summary-item small {
+      display: block;
+      margin-top: 4px;
+    }
+
+    .summary-notes {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 22px 0;
+      padding: 18px;
+      border-radius: 14px;
+      background: var(--navy);
+      color: white;
+    }
+
+    .summary-total strong {
+      color: var(--orange);
+      font-size: 24px;
+    }
   </style>
 </head>
 
@@ -275,6 +310,13 @@
       Windows: { complete: false, cost: 425, photo: null },
       Garage: { complete: false, cost: 1225, photo: null },
       Trees: { complete: false, cost: 450, photo: null }
+    },
+
+    interiorChecklist: {
+      Flooring: { complete: false },
+      "Paint & Wall Repair": { complete: false },
+      Doors: { complete: false },
+      "Pest Control": { complete: false }
     }
   };
 
@@ -351,8 +393,17 @@
           Exterior: ${exteriorProgress.completed} / ${exteriorProgress.total} complete
         </p>
 
-        <button class="primary" onclick="showExteriorInspection()">Begin Exterior Inspection</button>
-        <button class="secondary">Open Deal Analyzer</button>
+        <button class="primary" onclick="showSections()">
+          Begin Guided Inspection
+        </button>
+
+        <button class="secondary" onclick="showSummary()">
+          View Repair Summary
+        </button>
+
+        <button class="secondary">
+          Open Deal Analyzer
+        </button>
       </section>
     `;
 
@@ -360,6 +411,147 @@
       "$" + repairTotal.toLocaleString();
   }
 
+  function showComingSoon(sectionName) {
+    alert(sectionName + " will be built next.");
+  }
+
+  function showSections() {
+  const exteriorProgress = getExteriorProgress();
+
+  document.querySelector("main").innerHTML = `
+    <section class="card">
+      <p class="screen-label">Guided Inspection</p>
+      <h2>${appData.currentProject.address}</h2>
+
+      <div class="inspection-list">
+        <button class="inspection-item" onclick="showExteriorInspection()">
+          <div>
+            <strong>Exterior</strong>
+            <br>
+            <small class="inspection-condition">
+              ${exteriorProgress.completed} of ${exteriorProgress.total} complete
+            </small>
+          </div>
+          <span>›</span>
+        </button>
+
+        <button class="inspection-item" onclick="showInteriorInspection()">
+          <div>
+            <strong>Interior / General</strong>
+            <br>
+            <small class="inspection-condition">Not started</small>
+          </div>
+          <span>›</span>
+        </button>
+
+        <button class="inspection-item" onclick="showComingSoon('Kitchen')">
+          <div>
+            <strong>Kitchen</strong>
+            <br>
+            <small class="inspection-condition">Not started</small>
+          </div>
+          <span>›</span>
+        </button>
+
+        <button class="inspection-item" onclick="showComingSoon('Bathrooms')">
+          <div>
+            <strong>Bathrooms</strong>
+            <br>
+            <small class="inspection-condition">Not started</small>
+          </div>
+          <span>›</span>
+        </button>
+
+        <button class="inspection-item" onclick="showComingSoon('Systems & Structure')">
+          <div>
+            <strong>Systems & Structure</strong>
+            <br>
+            <small class="inspection-condition">Not started</small>
+          </div>
+          <span>›</span>
+        </button>
+      </div>
+
+      <button class="secondary" onclick="showDashboard()">
+        Return to Dashboard
+      </button>
+    </section>
+  `;
+}
+
+  function showInteriorInspection() {
+    const groups = Object.keys(appData.interiorChecklist);
+    const completed = groups.filter(
+      group => appData.interiorChecklist[group].complete
+    ).length;
+
+    document.querySelector("main").innerHTML = `
+      <section class="card">
+        <p class="screen-label">Interior / General</p>
+        <h2>${appData.currentProject.address}</h2>
+
+        <div class="inspection-list">
+          ${groups.map(group => `
+            <button
+              class="inspection-item"
+              onclick="openInteriorGroup('${group}')"
+            >
+              <div>
+                <strong>${group}</strong>
+                <br>
+                <small class="inspection-condition">
+                  ${
+                    appData.interiorChecklist[group].complete
+                      ? "Reviewed"
+                      : "Not reviewed yet"
+                  }
+                </small>
+              </div>
+
+              <span>›</span>
+            </button>
+          `).join("")}
+        </div>
+
+        <p class="hint">
+          Progress: ${completed} / ${groups.length} groups complete
+        </p>
+
+        <button class="secondary" onclick="showSections()">
+          Return to Sections
+        </button>
+      </section>
+    `;
+  }
+
+  function openInteriorGroup(groupName) {
+    document.querySelector("main").innerHTML = `
+      <section class="card">
+        <p class="screen-label">Interior / General</p>
+        <h2>${groupName}</h2>
+
+        <p class="hint">
+          Official repair items for this group will be added next.
+        </p>
+
+        <button
+          class="primary"
+          onclick="markInteriorGroupComplete('${groupName}')"
+        >
+           No Action Needed
+        </button>
+
+        <button class="secondary" onclick="showInteriorInspection()">
+          Cancel
+        </button>
+      </section>
+    `;
+  }
+    
+  function markInteriorGroupComplete(groupName) {
+    appData.interiorChecklist[groupName].complete = true;
+    showInteriorInspection();
+  }
   function toggleExteriorItem(itemName) {
     appData.exteriorChecklist[itemName].complete =
      !appData.exteriorChecklist[itemName].complete;
@@ -437,6 +629,59 @@
 
     showExteriorInspection();
 }
+  function showSummary() {
+    const completedItems = Object.entries(appData.exteriorChecklist)
+      .filter(([itemName, itemData]) => itemData.complete);
+
+    const repairTotal = getRepairTotal();
+
+    document.querySelector("main").innerHTML = `
+      <section class="card">
+        <p class="screen-label">Repair Summary</p>
+        <h2>${appData.currentProject.address}</h2>
+
+        ${
+          completedItems.length === 0
+            ? `<p class="hint">No repairs have been completed yet.</p>`
+            : completedItems.map(([itemName, itemData]) => `
+                <div class="summary-item">
+                  <div>
+                    <strong>${itemName}</strong>
+                    <small class="inspection-condition">
+                      ${itemData.condition || "Reviewed"}
+                    </small>
+
+                    ${
+                      itemData.notes
+                        ? `<p class="summary-notes">${itemData.notes}</p>`
+                        : ""
+                    }
+
+                    ${
+                      itemData.photo
+                        ? `<small class="photo-label">📷 Photo</small>`
+                        : ""
+                    }
+                  </div>
+
+                  <span class="inspection-cost">
+                    $${itemData.cost.toLocaleString()}
+                  </span>
+                </div>
+              `).join("")
+        }
+
+        <div class="summary-total">
+          <span>Estimated Repairs</span>
+          <strong>$${repairTotal.toLocaleString()}</strong>
+        </div>
+
+        <button class="secondary" onclick="showDashboard()">
+          Return to Dashboard
+        </button>
+      </section>
+    `;
+  }
 
   function previewPhoto(event, itemName) {
     const file = event.target.files[0];
