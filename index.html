@@ -225,6 +225,11 @@
       font-weight: bold;
       margin-right: 8px;
     }
+
+    .photo-label {
+      color: #6b7280;
+      font-size: 13px;
+}
   </style>
 </head>
 
@@ -362,13 +367,10 @@
     showExteriorInspection();
   }
 
-  const photoFile = document.getElementById("photoInput").files[0];
-
-  if (photoFile) {
-    savePhoto(itemName, photoFile);
-  }
 
   function openInspectionDetail(itemName) {
+
+  
   const item = appData.exteriorChecklist[itemName];
 
   document.querySelector("main").innerHTML = `
@@ -391,17 +393,26 @@
       <textarea id="notes" placeholder="Add notes about this repair..."></textarea>
 
       <label for="photoInput">Photo</label>
-      <input
-          id="photoInput"
-          type="file"
-          accept="image/*"
-          capture="environment"
-      />
 
-      <button class="primary" onclick="saveInspectionDetail('${itemName}')">
+  <input
+    id="photoInput"
+    type="file"
+    accept="image/*"
+    capture="environment"
+    onchange="previewPhoto(event, '${itemName}')"
+  />
+
+  <div id="photoPreview">
+    ${
+      item.photo
+        ? `<img src="${item.photo}" class="photo-thumbnail" alt="${itemName} photo">`
+        : `<p class="hint">No photo attached</p>`
+    }
+  </div>
+
+  <button class="primary" onclick="saveInspectionDetail('${itemName}')">
           Save Detail
       </button>
-
       <button class="secondary" onclick="showExteriorInspection()">
           Cancel
       </button>
@@ -425,6 +436,23 @@
     }
 
     showExteriorInspection();
+}
+
+  function previewPhoto(event, itemName) {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        appData.exteriorChecklist[itemName].photo = e.target.result;
+
+        document.getElementById("photoPreview").innerHTML =
+            `<img src="${e.target.result}" class="photo-thumbnail" alt="Preview">`;
+    };
+
+    reader.readAsDataURL(file);
 }
   function savePhoto(itemName, file) {
   const reader = new FileReader();
@@ -455,11 +483,19 @@
             onclick="openInspectionDetail('${item}')"
           >
            <div>
-              <strong>${appData.exteriorChecklist[item].complete ? "✅" : "⬜"} ${item}</strong>
+              <strong>
+                ${appData.exteriorChecklist[item].complete ? "✅" : "⬜"} ${item}
+              </strong>
+
               <br>
-              <small class="inspection-condition">
+
+              <small>
                 ${appData.exteriorChecklist[item].condition || "Not reviewed yet"}
               </small>
+
+              ${appData.exteriorChecklist[item].photo
+                ? "<br><small>📷 Photo</small>"
+                : ""}
             </div>
 
 <span class="inspection-cost">
