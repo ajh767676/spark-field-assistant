@@ -367,45 +367,48 @@
   ]
 };
   const repairGroups = {
-  Flooring: [
-    {
-      id: "ig-01",
-      name: "Refinish Hardwood Floor",
-      cost: 2.35,
-      unit: "sqft"
-    },
-    {
-      id: "ig-02",
-      name: 'New Hardwoods 1.5"',
-      cost: 10,
-      unit: "sqft"
-    },
-    {
-      id: "ig-03",
-      name: 'New Hardwoods 2"',
-      cost: 4.75,
-      unit: "sqft"
-    },
-    {
-      id: "ig-04",
-      name: "Hardwood Splicing",
-      cost: 8.40,
-      unit: "sqft"
-    },
-    {
-      id: "ig-05",
-      name: "Vinyl Plank",
-      cost: 2.50,
-      unit: "sqft"
-    },
-    {
-      id: "ig-06",
-      name: "Carpet",
-      cost: 1.90,
-      unit: "sqft"
-    }
-  ]
-};
+    Flooring: [
+      { id: "ig-01", name: "Refinish Hardwood Floor", cost: 2.35, unit: "sqft" },
+      { id: "ig-02", name: 'New Hardwoods 1.5"', cost: 10.00, unit: "sqft" },
+      { id: "ig-03", name: 'New Hardwoods 2"', cost: 4.75, unit: "sqft" },
+      { id: "ig-04", name: "Hardwood Splicing", cost: 8.40, unit: "sqft" },
+      { id: "ig-05", name: "Vinyl Plank", cost: 2.50, unit: "sqft" },
+      { id: "ig-06", name: "Carpet", cost: 1.90, unit: "sqft" }
+    ],
+
+    "Paint & Wall Repair": [
+      { id: "ig-07", name: "Interior Paint — 2 Tone", cost: 2.95, unit: "sqft" },
+      { id: "ig-08", name: "Drywall Repair", cost: 900.00, unit: "1,000 sqft" },
+      { id: "ig-09", name: "Wallpaper Removal", cost: 250.00, unit: "room" }
+    ],
+
+    Doors: [
+      { id: "ig-10", name: "Interior Door — Hollow Slab", cost: 125.00, unit: "ea." },
+      {
+        id: "ig-11",
+        name: "Interior Door Hardware (Knob + Hinges + Labor)",
+        cost: 25.00,
+        unit: "ea."
+      },
+      { id: "ig-12", name: "Bifold Door with Framing", cost: 400.00, unit: "ea." },
+      { id: "ig-13", name: "Interior Door — Pre-hung", cost: 200.00, unit: "ea." },
+      { id: "ig-14", name: "Front Entry Door", cost: 475.00, unit: "ea." },
+      { id: "ig-15", name: "Front Entry Door Hardware", cost: 80.00, unit: "ea." },
+      { id: "ig-16", name: "Exterior Door Hardware", cost: 75.00, unit: "handle" },
+      {
+        id: "ig-17",
+        name: "Exterior Insulated Side Door (Installed)",
+        cost: 500.00,
+        unit: "ea."
+      },
+      { id: "ig-18", name: "Sliding Glass Door", cost: 1025.00, unit: "ea." }
+    ],
+
+    "Pest Control": [
+      { id: "ig-23", name: "Bedbug Spray / Heat Treat", cost: 475.00, unit: "ea." },
+      { id: "ig-24", name: "Termite Treatment", cost: 650.00, unit: "ea." }
+    ]
+  };
   const appData = {
     currentProject: null,
     repairSelections: {},
@@ -601,11 +604,7 @@
           ${groups.map(group => `
             <button
               class="inspection-item"
-              onclick="${
-                group === "Flooring"
-                  ? "openRepairGroup('Flooring')"
-                  : `openInteriorGroup('${group}')`
-              }"
+              onclick="openRepairGroup('${group}')"
             >
               <div>
                 <strong>${group}</strong>
