@@ -265,6 +265,42 @@
       color: var(--orange);
       font-size: 24px;
     }
+    .repair-line {
+      background: #f3f4f6;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .repair-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .repair-check input {
+      width: auto;
+      margin: 0;
+    }
+
+    .repair-check small {
+      display: block;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .repair-input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .line-total {
+      font-weight: bold;
+      text-align: right;
+      margin: 4px 0;
+    }
   </style>
 </head>
 
@@ -298,11 +334,82 @@
     </div>
   </div>
 
-<script>
+
+  <script>
+  
   let currentScreen = "home";
 
+  const repairCatalog = {
+  Exterior: [
+    {
+      name: "Roof",
+      defaultCost: 1100
+    },
+    {
+      name: "Gutters",
+      defaultCost: 500
+    },
+    {
+      name: "Siding",
+      defaultCost: 975
+    }
+  ],
+
+  Interior: [
+    {
+      name: "Flooring",
+      defaultCost: 0
+    },
+    {
+      name: "Paint & Wall Repair",
+      defaultCost: 0
+    }
+  ]
+};
+  const repairGroups = {
+  Flooring: [
+    {
+      id: "ig-01",
+      name: "Refinish Hardwood Floor",
+      cost: 2.35,
+      unit: "sqft"
+    },
+    {
+      id: "ig-02",
+      name: 'New Hardwoods 1.5"',
+      cost: 10,
+      unit: "sqft"
+    },
+    {
+      id: "ig-03",
+      name: 'New Hardwoods 2"',
+      cost: 4.75,
+      unit: "sqft"
+    },
+    {
+      id: "ig-04",
+      name: "Hardwood Splicing",
+      cost: 8.40,
+      unit: "sqft"
+    },
+    {
+      id: "ig-05",
+      name: "Vinyl Plank",
+      cost: 2.50,
+      unit: "sqft"
+    },
+    {
+      id: "ig-06",
+      name: "Carpet",
+      cost: 1.90,
+      unit: "sqft"
+    }
+  ]
+};
   const appData = {
     currentProject: null,
+    repairSelections: {},
+
     exteriorChecklist: {
       Roof: { complete: false, cost: 1100, photo: null },
       Gutters: { complete: false, cost: 500, photo: null },
@@ -494,7 +601,11 @@
           ${groups.map(group => `
             <button
               class="inspection-item"
-              onclick="openInteriorGroup('${group}')"
+              onclick="${
+                group === "Flooring"
+                  ? "openRepairGroup('Flooring')"
+                  : `openInteriorGroup('${group}')`
+              }"
             >
               <div>
                 <strong>${group}</strong>
@@ -547,7 +658,139 @@
       </section>
     `;
   }
-    
+   function openRepairGroup(groupName) {
+    const items = repairGroups[groupName];
+    const projectTotal = getProjectTotal();
+
+    document.querySelector(".bottom-bar .total").textContent =
+      "$" + projectTotal.toLocaleString();
+
+    if (!items) {
+      alert("Repair data has not been added for this group yet.");
+      return;
+    }
+
+    document.querySelector("main").innerHTML = `
+      <section class="card">
+        <p class="screen-label">Interior / General</p>
+        <h2>${groupName}</h2>
+
+        <div class="repair-item-list">
+          ${items.map(item => {
+            const saved = appData.repairSelections[item.id] || {
+              selected: false,
+              quantity: 0,
+              unitCost: item.cost
+            };
+
+            const lineTotal = saved.quantity * saved.unitCost;
+
+            return `
+              <div class="repair-line">
+                <label class="repair-check">
+                  <input
+                    type="checkbox"
+                    id="selected-${item.id}"
+                    ${saved.selected ? "checked" : ""}
+                  />
+
+                  <span>
+                    <strong>${item.name}</strong>
+                    <small>${item.unit}</small>
+                  </span>
+                </label>
+
+                <div class="repair-input-grid">
+                  <div>
+                    <label for="quantity-${item.id}">Quantity</label>
+                    <input
+                      id="quantity-${item.id}"
+                      type="number"
+                      min="0"
+                      step="any"
+                      value="${saved.quantity}"
+                    />
+                  </div>
+
+                  <div>
+                    <label for="cost-${item.id}">Unit Cost</label>
+                    <input
+                      id="cost-${item.id}"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value="${saved.unitCost}"
+                    />
+                  </div>
+                </div>
+
+                <p class="line-total">
+                  Line Total: $${lineTotal.toLocaleString()}
+                </p>
+
+                <button
+                  class="primary"
+                  onclick="saveRepairItem('${groupName}', '${item.id}')"
+                >
+                  Save Item
+                </button>
+              </div>
+            `;
+          }).join("")}
+        </div>
+
+        <button
+          class="secondary"
+          onclick="markInteriorGroupComplete('${groupName}')"
+        >
+          No Action Needed
+        </button>
+
+        <button class="secondary" onclick="showInteriorInspection()">
+          Return to Interior
+        </button>
+      </section>
+    `;
+  }
+  
+  function saveRepairItem(groupName, itemId) {
+    const selected = document.getElementById(`selected-${itemId}`).checked;
+    const quantity = Number(
+      document.getElementById(`quantity-${itemId}`).value
+    );
+    const unitCost = Number(
+      document.getElementById(`cost-${itemId}`).value
+    );
+
+    appData.repairSelections[itemId] = {
+      selected: selected,
+      quantity: quantity,
+      unitCost: unitCost
+    };
+
+    if (selected) {
+      appData.interiorChecklist[groupName].complete = true;
+    }
+
+  const projectTotal = getProjectTotal();
+
+  document.querySelector(".bottom-bar .total").textContent =
+    "$" + projectTotal.toLocaleString();
+
+  openRepairGroup(groupName);
+}
+  function getProjectTotal() {
+  return Object.values(appData.repairSelections).reduce(
+    (total, item) => {
+      if (!item.selected) {
+        return total;
+      }
+
+      return total + item.quantity * item.unitCost;
+    },
+    0
+  );
+}
   function markInteriorGroupComplete(groupName) {
     appData.interiorChecklist[groupName].complete = true;
     showInteriorInspection();
