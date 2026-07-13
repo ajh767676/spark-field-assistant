@@ -725,6 +725,8 @@
         </button>
       </section>
     `;
+    showBottomBar();
+    hideBottomBar();
 
     document.querySelector(".bottom-bar .total").textContent =
       "$" + repairTotal.toLocaleString();
@@ -1770,7 +1772,13 @@ function openBathroom(bathroomId) {
       lineTotal: selection.quantity * selection.unitCost
     };
   }
+  function hideBottomBar() {
+    document.querySelector(".bottom-bar").style.display = "none";
+  }
 
+  function showBottomBar() {
+    document.querySelector(".bottom-bar").style.display = "flex";
+  }
   
   function showSummary() {
     const selectedRepairs = Object.entries(appData.repairSelections)
