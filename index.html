@@ -385,6 +385,44 @@
     .estimate-grand-total strong {
       font-size: 30px;
     }
+
+    .deal-results {
+      margin: 22px 0;
+    }
+
+    .deal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .deal-grid .stat-card strong {
+      font-size: 20px;
+    }
+
+    .deal-rating {
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .deal-strong {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .deal-tight {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .deal-risky {
+      background: #fee2e2;
+      color: #991b1b;
+    }
   </style>
 </head>
 
@@ -720,7 +758,7 @@
           Export Estimate
         </button>
 
-        <button class="secondary">
+        <button class="secondary" onclick="showDealAnalyzer()">
           Open Deal Analyzer
         </button>
       </section>
@@ -1780,6 +1818,156 @@ function openBathroom(bathroomId) {
     document.querySelector(".bottom-bar").style.display = "flex";
   }
   
+  function showDealAnalyzer() {
+    const repairTotal = getProjectTotal() + getRepairTotal();
+
+    document.querySelector("main").innerHTML = `
+      <section class="card">
+        <p class="screen-label">Deal Analyzer</p>
+        <h2>${appData.currentProject.address}</h2>
+
+        <label for="purchasePrice">Purchase Price</label>
+        <input
+          id="purchasePrice"
+          type="number"
+          min="0"
+          placeholder="Example: 120000"
+          oninput="calculateDeal()"
+        />
+
+        <label for="afterRepairValue">After Repair Value (ARV)</label>
+        <input
+          id="afterRepairValue"
+          type="number"
+          min="0"
+          placeholder="Example: 200000"
+          oninput="calculateDeal()"
+        />
+
+        <label for="sellingCosts">Selling and Holding Costs</label>
+        <input
+          id="sellingCosts"
+          type="number"
+          min="0"
+          value="0"
+          oninput="calculateDeal()"
+        />
+
+        <label for="analyzerRepairCost">Estimated Repair Cost</label>
+        <input
+          id="analyzerRepairCost"
+          type="number"
+          value="${repairTotal}"
+          readonly
+        />
+
+        <div id="dealResults" class="deal-results">
+          <p class="hint">
+            Enter the purchase price and ARV to analyze this deal.
+          </p>
+        </div>
+
+        <button class="secondary" onclick="showDashboard()">
+          Return to Dashboard
+        </button>
+      </section>
+    `;
+
+    showBottomBar();
+  }
+
+  function calculateDeal() {
+    const purchasePrice =
+      Number(document.getElementById("purchasePrice").value) || 0;
+
+    const arv =
+      Number(document.getElementById("afterRepairValue").value) || 0;
+
+    const sellingCosts =
+      Number(document.getElementById("sellingCosts").value) || 0;
+
+    const repairCost =
+      Number(document.getElementById("analyzerRepairCost").value) || 0;
+
+    const results = document.getElementById("dealResults");
+
+    if (purchasePrice <= 0 || arv <= 0) {
+      results.innerHTML = `
+        <p class="hint">
+          Enter the purchase price and ARV to analyze this deal.
+        </p>
+      `;
+      return;
+    }
+
+    const totalInvestment =
+      purchasePrice + repairCost + sellingCosts;
+
+    const estimatedProfit =
+      arv - totalInvestment;
+
+    const profitMargin =
+      arv > 0 ? (estimatedProfit / arv) * 100 : 0;
+
+    const maximumOffer =
+      arv * 0.7 - repairCost;
+
+    let rating = "Risky Deal";
+    let ratingClass = "deal-risky";
+
+    if (estimatedProfit >= 30000 && profitMargin >= 15) {
+      rating = "Strong Deal";
+      ratingClass = "deal-strong";
+    } else if (estimatedProfit > 0) {
+      rating = "Tight Deal";
+      ratingClass = "deal-tight";
+    }
+
+    results.innerHTML = `
+      <div class="deal-rating ${ratingClass}">
+        ${rating}
+      </div>
+
+      <div class="deal-grid">
+        <div class="stat-card">
+          <span class="stat-label">Estimated Profit</span>
+          <strong>
+            $${estimatedProfit.toLocaleString(undefined, {
+              maximumFractionDigits: 0
+            })}
+          </strong>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Profit Margin</span>
+          <strong>${profitMargin.toFixed(1)}%</strong>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Total Investment</span>
+          <strong>
+            $${totalInvestment.toLocaleString(undefined, {
+              maximumFractionDigits: 0
+            })}
+          </strong>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">70% Rule Max Offer</span>
+          <strong>
+            $${maximumOffer.toLocaleString(undefined, {
+              maximumFractionDigits: 0
+            })}
+          </strong>
+        </div>
+      </div>
+
+      <p class="hint">
+        Formula: ARV − purchase price − repairs − selling and holding costs.
+        The 70% rule estimate is ARV × 70% − repairs.
+      </p>
+    `;
+  }
   function showSummary() {
     const selectedRepairs = Object.entries(appData.repairSelections)
       .filter(([, selection]) => selection.selected)
