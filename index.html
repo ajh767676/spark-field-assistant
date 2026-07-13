@@ -301,6 +301,90 @@
       text-align: right;
       margin: 4px 0;
     }
+
+    .summary-section {
+      margin-top: 26px;
+    }
+
+    .summary-section h3 {
+      color: var(--orange);
+      font-size: 15px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #f3f4f6;
+    }
+
+    .estimate-property {
+      background: #f3f4f6;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .estimate-property h2 {
+      margin: 4px 0 16px;
+    }
+
+    .estimate-property p {
+      margin: 4px 0 0;
+      font-weight: bold;
+    }
+
+    .estimate-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .summary-section {
+      margin-top: 34px;
+    }
+
+    .summary-item {
+      padding: 18px 0;
+    }
+
+    .summary-notes {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    .photo-label {
+      display: inline-block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-weight: bold;
+    }
+
+    .estimate-grand-total {
+      margin-top: 34px;
+      padding: 22px;
+    }
+
+    .estimate-grand-total small {
+      display: block;
+      margin-top: 6px;
+      color: #cbd5e1;
+    }
+
+    .grand-total-label {
+      display: block;
+      font-size: 15px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .estimate-grand-total strong {
+      font-size: 30px;
+    }
   </style>
 </head>
 
@@ -546,7 +630,6 @@
     systemsChecklist: {
       HVAC: { complete: false },
       Electrical: { complete: false },
-      Plumbing: { complete: false },
       Structural: { complete: false },
       "Insulation & Drywall": { complete: false }
     }
@@ -572,7 +655,7 @@
       "currentProject",
       JSON.stringify(appData.currentProject)
     );
-
+    saveAppData();
     showDashboard();
   }
 
@@ -631,6 +714,10 @@
 
         <button class="secondary" onclick="showSummary()">
           View Repair Summary
+        </button>
+
+        <button class="primary" onclick="exportEstimateCSV()">
+          Export Estimate
         </button>
 
         <button class="secondary">
@@ -720,6 +807,7 @@
     name: "Bathroom " + number
   });
 
+  saveAppData();
   showBathrooms();
 }
 
@@ -732,6 +820,7 @@ function removeBathroom(bathroomId) {
     bathroom.name = "Bathroom " + (index + 1);
   });
 
+  saveAppData();  
   showBathrooms();
 }
 
@@ -982,6 +1071,7 @@ function openBathroom(bathroomId) {
       };
     });
 
+    saveAppData();
     openBathroom(roomId);
   }
 
@@ -1005,6 +1095,7 @@ function openBathroom(bathroomId) {
       unitCost
     };
 
+    saveAppData();
     openRoomRepairGroup(roomId, roomName, groupName);
 
     document.querySelector(".bottom-bar .total").textContent =
@@ -1268,7 +1359,7 @@ function openBathroom(bathroomId) {
 
                 <button
                   class="primary"
-                  onclick="saveRepairItem('${groupName}', '${item.id}')"
+                  onclick="saveRepairItem('${groupName}', '${item.id}', '${sectionName}')"
                 >
                   Save Item
                 </button>
@@ -1306,7 +1397,7 @@ function openBathroom(bathroomId) {
     `;
   }
   
-  function saveRepairItem(groupName, itemId) {
+  function saveRepairItem(groupName, itemId, sectionName) {
     const selected = document.getElementById(`selected-${itemId}`).checked;
     const quantity = Number(
       document.getElementById(`quantity-${itemId}`).value
@@ -1329,31 +1420,231 @@ function openBathroom(bathroomId) {
       if (appData.kitchenChecklist[groupName]) {
         appData.kitchenChecklist[groupName].complete = true;
       }
+      if (appData.systemsChecklist[groupName]) {
+        appData.systemsChecklist[groupName].complete = true;
+      }
     }
+    saveAppData();
 
   const projectTotal = getProjectTotal();
 
   document.querySelector(".bottom-bar .total").textContent =
     "$" + projectTotal.toLocaleString();
 
-  openRepairGroup(groupName);
-}
-  function getProjectTotal() {
-  return Object.values(appData.repairSelections).reduce(
-    (total, item) => {
-      if (!item.selected) {
-        return total;
-      }
+  openRepairGroup(groupName, sectionName);
+ }
 
-      return total + item.quantity * item.unitCost;
-    },
-    0
-  );
-}
+  function saveAppData() {
+    if (!appData.currentProject) {
+      return;
+    }
+
+    localStorage.setItem(
+      "sparkFieldAssistantData",
+      JSON.stringify(appData)
+    );
+  }
+
+  function loadAppData() {
+    const savedData = localStorage.getItem(
+      "sparkFieldAssistantData"
+    );
+
+    if (!savedData) {
+      return false;
+    }
+
+    try {
+      const parsedData = JSON.parse(savedData);
+
+      Object.assign(appData, parsedData);
+
+      return true;
+    } catch (error) {
+      console.error("Unable to load saved project:", error);
+      return false;
+    }
+  }
+
+  function getProjectTotal() {
+    return Object.values(appData.repairSelections).reduce(
+      (total, item) => {
+        if (!item.selected) {
+          return total;
+        }
+
+        return total + item.quantity * item.unitCost;
+      },
+      0
+    );
+  }
+
+  function findRepairItem(itemId) {
+    const allItems = Object.values(repairGroups).flat();
+
+    return allItems.find(item => item.id === itemId) || null;
+  }
+
   function markInteriorGroupComplete(groupName) {
     appData.interiorChecklist[groupName].complete = true;
     showInteriorInspection();
   }
+
+  function escapeCSV(value) {
+    const text = String(value ?? "");
+
+    if (
+      text.includes(",") ||
+      text.includes('"') ||
+      text.includes("\n")
+    ) {
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    return text;
+  }
+
+  function exportEstimateCSV() {
+  const rows = [
+    [
+      "Section",
+      "Room",
+      "Item",
+      "Quantity",
+      "Unit",
+      "Unit Cost",
+      "Line Total"
+    ]
+  ];
+
+  // New repair-engine selections:
+  // Interior, Kitchen, Systems, and Bathrooms
+  Object.entries(appData.repairSelections).forEach(
+    ([selectionId, selection]) => {
+      if (!selection.selected) {
+        return;
+      }
+
+      const allItems = Object.values(repairGroups).flat();
+
+      const repairItem = allItems.find(item =>
+        selectionId === item.id ||
+        selectionId.endsWith("-" + item.id)
+      );
+
+      if (!repairItem) {
+        return;
+      }
+
+      let roomName = "";
+      let sectionName = "General";
+
+      if (selectionId.startsWith("bathroom-")) {
+        const bathroom = appData.bathrooms.find(room =>
+          selectionId.startsWith(room.id + "-")
+        );
+
+        roomName = bathroom ? bathroom.name : "Bathroom";
+        sectionName = "Bathrooms";
+      } else if (
+        appData.kitchenChecklist &&
+        appData.kitchenChecklist[
+          Object.keys(appData.kitchenChecklist).find(group =>
+            repairGroups[group]?.some(
+              item => item.id === repairItem.id
+            )
+          )
+        ]
+      ) {
+        sectionName = "Kitchen";
+      } else if (
+        appData.systemsChecklist &&
+        appData.systemsChecklist[
+          Object.keys(appData.systemsChecklist).find(group =>
+            repairGroups[group]?.some(
+              item => item.id === repairItem.id
+            )
+          )
+        ]
+      ) {
+        sectionName = "Systems & Structure";
+      } else {
+        sectionName = "Interior / General";
+      }
+
+      const lineTotal =
+        selection.quantity * selection.unitCost;
+
+      rows.push([
+        sectionName,
+        roomName,
+        repairItem.name,
+        selection.quantity,
+        repairItem.unit,
+        selection.unitCost,
+        lineTotal
+      ]);
+    }
+  );
+
+  // Existing Exterior checklist items
+  Object.entries(appData.exteriorChecklist).forEach(
+    ([itemName, item]) => {
+      if (!item.complete) {
+        return;
+      }
+
+      rows.push([
+        "Exterior",
+        "",
+        itemName,
+        1,
+        "item",
+        item.cost,
+        item.cost
+      ]);
+    }
+  );
+
+  const grandTotal =
+    getProjectTotal() + getRepairTotal();
+
+  rows.push([]);
+  rows.push([
+    "",
+    "",
+    "Grand Total",
+    "",
+    "",
+    "",
+    grandTotal
+  ]);
+
+  const csvContent = rows
+    .map(row => row.map(escapeCSV).join(","))
+    .join("\n");
+
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const downloadUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  const safeAddress = appData.currentProject.address
+    .replace(/[^a-z0-9]/gi, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+
+  link.href = downloadUrl;
+  link.download = `${safeAddress}-repair-estimate.csv`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(downloadUrl);
+}
   function toggleExteriorItem(itemName) {
     appData.exteriorChecklist[itemName].complete =
      !appData.exteriorChecklist[itemName].complete;
@@ -1428,55 +1719,176 @@ function openBathroom(bathroomId) {
     if (photoFile) {
     savePhoto(itemName, photoFile);
     }
-
+    saveAppData();
     showExteriorInspection();
 }
+  function getSelectionDetails(selectionId, selection) {
+    const allItems = Object.values(repairGroups).flat();
+
+    const repairItem = allItems.find(item =>
+      selectionId === item.id ||
+      selectionId.endsWith("-" + item.id)
+    );
+
+    if (!repairItem) {
+      return null;
+    }
+
+    let section = "Interior / General";
+    let room = "";
+
+    if (selectionId.startsWith("bathroom-")) {
+      const bathroom = appData.bathrooms.find(item =>
+        selectionId.startsWith(item.id + "-")
+      );
+
+      section = "Bathrooms";
+      room = bathroom ? bathroom.name : "Bathroom";
+    } else {
+      const kitchenGroup = Object.keys(appData.kitchenChecklist).find(
+        group => repairGroups[group]?.some(item => item.id === repairItem.id)
+      );
+
+      const systemsGroup = Object.keys(appData.systemsChecklist).find(
+        group => repairGroups[group]?.some(item => item.id === repairItem.id)
+      );
+
+      if (kitchenGroup) {
+        section = "Kitchen";
+      } else if (systemsGroup) {
+        section = "Systems & Structure";
+      }
+    }
+
+    return {
+      section,
+      room,
+      name: repairItem.name,
+      unit: repairItem.unit,
+      quantity: selection.quantity,
+      unitCost: selection.unitCost,
+      lineTotal: selection.quantity * selection.unitCost
+    };
+  }
+
+  
   function showSummary() {
-    const completedItems = Object.entries(appData.exteriorChecklist)
-      .filter(([itemName, itemData]) => itemData.complete);
+    const selectedRepairs = Object.entries(appData.repairSelections)
+      .filter(([, selection]) => selection.selected)
+      .map(([selectionId, selection]) =>
+        getSelectionDetails(selectionId, selection)
+      )
+      .filter(Boolean);
+
+    const exteriorRepairs = Object.entries(appData.exteriorChecklist)
+      .filter(([, item]) => item.complete)
+      .map(([itemName, item]) => ({
+        section: "Exterior",
+        room: "",
+        name: itemName,
+        unit: "item",
+        quantity: 1,
+        unitCost: item.cost,
+        lineTotal: item.cost,
+        notes: item.notes || "",
+        photo: item.photo || null
+      }));
+
+    const allRepairs = [...selectedRepairs, ...exteriorRepairs];
+
+    const sectionOrder = [
+      "Interior / General",
+      "Kitchen",
+      "Bathrooms",
+      "Systems & Structure",
+      "Exterior"
+    ];
+
+    const groupedRepairs = sectionOrder
+      .map(section => ({
+        section,
+        repairs: allRepairs.filter(item => item.section === section)
+      }))
+      .filter(group => group.repairs.length > 0);
 
     const repairTotal = getProjectTotal() + getRepairTotal();
+    const itemCount = allRepairs.length;
+
+    const estimateDate = new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
 
     document.querySelector("main").innerHTML = `
       <section class="card">
-        <p class="screen-label">Repair Summary</p>
-        <h2>${appData.currentProject.address}</h2>
+        <p class="screen-label">Repair Estimate</p>
+
+        <div class="estimate-property">
+          <span class="estimate-label">Property</span>
+          <h2>${appData.currentProject.address}</h2>
+
+          <span class="estimate-label">Prepared</span>
+          <p>${estimateDate}</p>
+        </div>
 
         ${
-          completedItems.length === 0
-            ? `<p class="hint">No repairs have been completed yet.</p>`
-            : completedItems.map(([itemName, itemData]) => `
-                <div class="summary-item">
-                  <div>
-                    <strong>${itemName}</strong>
-                    <small class="inspection-condition">
-                      ${itemData.condition || "Reviewed"}
-                    </small>
+          groupedRepairs.length === 0
+            ? `<p class="hint">No repairs have been selected yet.</p>`
+            : groupedRepairs.map(group => `
+                <div class="summary-section">
+                  <h3>${group.section}</h3>
 
-                    ${
-                      itemData.notes
-                        ? `<p class="summary-notes">${itemData.notes}</p>`
-                        : ""
-                    }
+                  ${group.repairs.map(item => `
+                    <div class="summary-item">
+                      <div>
+                        <strong>
+                          ${item.room ? `${item.room}: ` : ""}
+                          ${item.name}
+                        </strong>
 
-                    ${
-                      itemData.photo
-                        ? `<small class="photo-label">📷 Photo</small>`
-                        : ""
-                    }
-                  </div>
+                        <small class="inspection-condition">
+                          ${item.quantity} ${item.unit}
+                          × $${Number(item.unitCost).toLocaleString()}
+                        </small>
 
-                  <span class="inspection-cost">
-                    $${itemData.cost.toLocaleString()}
-                  </span>
+                        ${
+                          item.notes
+                            ? `<p class="summary-notes">Note: ${item.notes}</p>`
+                            : ""
+                        }
+
+                        ${
+                          item.photo
+                            ? `<small class="photo-label">📷 Photo included</small>`
+                            : ""
+                        }
+                      </div>
+
+                      <span class="inspection-cost">
+                        $${item.lineTotal.toLocaleString()}
+                      </span>
+                    </div>
+                  `).join("")}
                 </div>
               `).join("")
         }
 
-        <div class="summary-total">
-          <span>Estimated Repairs</span>
+        <div class="summary-total estimate-grand-total">
+          <div>
+            <span class="grand-total-label">Grand Total</span>
+
+            <small>
+              ${itemCount} repair${itemCount === 1 ? "" : "s"} selected
+            </small>
+          </div>
+
           <strong>$${repairTotal.toLocaleString()}</strong>
         </div>
+
+        <button class="primary" onclick="exportEstimateCSV()">
+          Export Estimate
+        </button>
 
         <button class="secondary" onclick="showDashboard()">
           Return to Dashboard
@@ -1558,6 +1970,13 @@ function openBathroom(bathroomId) {
     </section>
     `;
   }
+  window.addEventListener("DOMContentLoaded", () => {
+    const restored = loadAppData();
+
+    if (restored && appData.currentProject) {
+      showDashboard();
+    }
+  });
 </script>
 </body>
 </html>
