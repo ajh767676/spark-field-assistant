@@ -38,19 +38,19 @@ The application helps acquisition specialists perform property walkthroughs, est
 
 ### Dashboard
 
-![Dashboard](assets/screenshots/dashboard.png)
+![Dashboard](Screenshots/dashboard.png)
 
 ### Guided Inspection
 
-![Guided Inspection](assets/screenshots/guided-inspection.png)
+![Guided Inspection](Screenshots/guided-inspection.png)
 
 ### Repair Summary
 
-![Repair Summary](assets/screenshots/repair-summary.png)
+![Repair Summary](Screenshots/repair-summary.png)
 
 ### Deal Analyzer
 
-![Deal Analyzer](assets/screenshots/deal-analyzer.png)
+![Deal Analyzer](Screenshots/deal-analyzer.png)
 ---
 
 ## Design Goals
