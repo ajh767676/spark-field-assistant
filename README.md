@@ -34,6 +34,23 @@ The application helps acquisition specialists perform property walkthroughs, est
 - Vanilla JavaScript (ES6)
 - localStorage
 
+## Screenshots
+
+### Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+### Guided Inspection
+
+![Guided Inspection](screenshots/guided-inspection.png)
+
+### Repair Summary
+
+![Repair Summary](screenshots/repair-summary.png)
+
+### Deal Analyzer
+
+![Deal Analyzer](screenshots/deal-analyzer.png)
 ---
 
 ## Design Goals
